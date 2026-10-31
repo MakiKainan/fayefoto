@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Persona 5 flat vector palette: red, black, white. No gradients, no glow, no blur. */
+:root {
+  --p5-red: #e5191c;
+  --p5-red-dark: #99000a;
+  --p5-black: #0f0f0f;
+  --p5-white: #fdfdfd;
+  --p5-blue: #2f6bff;
+}
+
+@layer base {
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--p5-black);
+    color: var(--p5-white);
+  }
+
+  code, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Hard-edged panels with offset comic shadows */
+  .p5-card {
+    background: var(--p5-black);
+    border: 3px solid var(--p5-white);
+    box-shadow: 8px 8px 0 var(--p5-red);
+  }
+
+  .p5-card-light {
+    background: var(--p5-white);
+    color: var(--p5-black);
+    border: 3px solid var(--p5-black);
+    box-shadow: 8px 8px 0 var(--p5-black);
+  }
+
+  .p5-card-red {
+    background: var(--p5-red);
+    color: var(--p5-white);
+    border: 3px solid var(--p5-black);
+    box-shadow: 8px 8px 0 var(--p5-black);
+  }
+
+  /* Skewed menu button, like the P5 pause menu entries */
+  .p5-btn {
+    @apply relative inline-flex items-center justify-center gap-2 px-4 py-2 font-display uppercase tracking-wider text-sm select-none;
+    background: var(--p5-black);
+    color: var(--p5-white);
+    border: 3px solid var(--p5-white);
+    transform: skewX(-12deg);
+    box-shadow: 4px 4px 0 var(--p5-black);
+    transition: transform 120ms ease-out, background-color 120ms, color 120ms;
+  }
+  .p5-btn > * {
+    transform: skewX(12deg);
+  }
+  .p5-btn:hover {
+    background: var(--p5-red);
+    transform: skewX(-12deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--p5-black);
+  }
+  .p5-btn:active {
+    transform: skewX(-12deg) translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--p5-black);
+  }
+  .p5-btn[data-active='true'] {
+    background: var(--p5-white);
+    color: var(--p5-black);
+    border-color: var(--p5-black);
+    box-shadow: 5px 5px 0 var(--p5-red);
+  }
+  .p5-btn:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .p5-btn-primary {
+    background: var(--p5-red);
+    border-color: var(--p5-black);
+    box-shadow: 6px 6px 0 var(--p5-white);
+  }
+  .p5-btn-primary:hover {
+    background: var(--p5-white);
+    color: var(--p5-black);
+    box-shadow: 8px 8px 0 var(--p5-red);
+  }
+
+  /* Ransom-note section heading: black slab on a red under-slab */
+  .p5-heading {
+    @apply inline-block font-display uppercase text-lg tracking-wide px-3 py-0.5;
+    background: var(--p5-black);
+    color: var(--p5-white);
+    transform: rotate(-2deg) skewX(-10deg);
+    box-shadow: 5px 4px 0 var(--p5-red);
+  }
+
+  /* "Press any button" blue cutout tag from the title screen */
+  .p5-tag-blue {
+    @apply inline-block font-display uppercase tracking-wide px-3 py-1;
+    background: var(--p5-blue);
+    color: var(--p5-white);
+    border: 2px solid var(--p5-white);
+    transform: rotate(-3deg) skewX(-8deg);
+    box-shadow: 4px 4px 0 var(--p5-black);
+  }
+
+  .p5-input {
+    @apply w-full px-3 py-2 font-semibold text-sm focus:outline-none;
+    background: var(--p5-white);
+    color: var(--p5-black);
+    border: 3px solid var(--p5-black);
+    box-shadow: 4px 4px 0 var(--p5-red);
+  }
+  .p5-input:focus {
+    box-shadow: 4px 4px 0 var(--p5-black);
+    border-color: var(--p5-red);
+  }
+}
+
+@layer utilities {
+  /* Halftone dot screen, used on top of flat colour fills */
+  .p5-halftone {
+    background-image: radial-gradient(circle, var(--p5-black) 28%, transparent 30%);
+    background-size: 9px 9px;
+  }
+  .p5-halftone-light {
+    background-image: radial-gradient(circle, var(--p5-white) 26%, transparent 28%);
+    background-size: 10px 10px;
+  }
+
+  /* Hard diagonal stripes */
+  .p5-stripes {
+    background-image: repeating-linear-gradient(
+      -55deg,
+      var(--p5-black) 0 14px,
+      var(--p5-white) 14px 28px
+    );
+  }
+
+  .clip-slash {
+    clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+  }
+  .clip-jag {
+    clip-path: polygon(0 4%, 18% 0, 46% 3%, 72% 0, 100% 5%, 97% 52%, 100% 96%, 70% 100%, 38% 97%, 12% 100%, 0 95%, 3% 50%);
+  }
+
+  /* Turns a photo into a flat, posterised graphic */
+  .p5-posterize {
+    filter: grayscale(1) contrast(2.2) brightness(0.9);
+  }
+}
+
+/* Page transition: slashes sweep in from the left, hold, then exit right */
+.p5-wipe {
+  transform: translateX(-120%) skewX(-18deg);
+  animation: p5wipe 900ms cubic-bezier(0.7, 0, 0.3, 1) both;
+}
+.p5-wipe-late {
+  animation-delay: 60ms;
+  animation-duration: 840ms;
+}
+.p5-wipe-last {
+  animation-delay: 110ms;
+  animation-duration: 790ms;
+}
+@keyframes p5wipe {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  40%, 58% { transform: translateX(0) skewX(-18deg); }
+  100% { transform: translateX(120%) skewX(-18deg); }
+}
+
+::selection {
+  background: var(--p5-red);
+  color: var(--p5-white);
+}
+
+/* Scrollbars: flat red thumb on black */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--p5-black);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--p5-red);
+}

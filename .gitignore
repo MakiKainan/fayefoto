@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+.vite/
+
+# Reference material, not part of the site
+persona5-pausemenu/
+material kit/
