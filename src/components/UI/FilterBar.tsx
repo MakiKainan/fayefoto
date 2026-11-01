@@ -6,11 +6,9 @@ interface FilterBarProps {
   onSelectFilter: (filter: FilterType) => void;
 }
 
-const FILTERS: { id: FilterType; label: string; swatch: string }[] = [
+export const FILTERS:{ id: FilterType; label: string; swatch: string }[] = [
   { id: 'normal', label: 'Original', swatch: '#FDFDFD' },
   { id: 'persona-crimson', label: 'Persona Red', swatch: '#E5191C' },
-  { id: 'fallen-angels', label: 'FA: Emerald', swatch: '#10B981' },
-  { id: 'fallen-neon', label: 'FA: Neon Cyan', swatch: '#2DD4BF' },
   { id: 'fallen-noir', label: 'FA: Noir B&W', swatch: '#0F0F0F' },
   { id: 'fallen-amber', label: 'FA: Amber Night', swatch: '#D97706' },
   { id: 'vintage', label: 'Vintage', swatch: '#92400E' },

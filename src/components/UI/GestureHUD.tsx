@@ -9,9 +9,8 @@ interface GestureHUDProps {
 
 const GESTURE_ITEMS: { type: Exclude<GestureType, 'NONE'>; action: string; offset: string }[] = [
   { type: 'VICTORY', action: 'Take Photos', offset: 'lg:ml-0' },
-  { type: 'THUMBS_UP', action: 'Next Layout', offset: 'lg:ml-6' },
-  { type: 'OPEN_PALM', action: 'Cycle Filter', offset: 'lg:ml-3' },
-  { type: 'FIST', action: 'Retake', offset: 'lg:ml-9' },
+  { type: 'OPEN_PALM', action: 'Cycle Filter', offset: 'lg:ml-4' },
+  { type: 'FIST', action: 'Stop', offset: 'lg:ml-9' },
 ];
 
 /**

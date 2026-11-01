@@ -77,21 +77,14 @@ export const THEME_PRESETS: ThemePreset[] = [
 
 const FILTER_ORDER: FilterType[] = [
   'normal',
-  'fallen-angels',
-  'fallen-neon',
+  'persona-crimson',
   'fallen-noir',
   'fallen-amber',
-  'persona-crimson',
   'vintage',
   'cyberpunk',
   'grayscale',
 ];
 
-const LAYOUT_ORDER: StripLayout[] = [
-  'vertical-1x4',
-  'grid-2x2',
-  'classic-2x1',
-];
 
 export interface UsePhotoboothFlowOptions {
   onCaptureFrame: () => string | null;
@@ -130,6 +123,11 @@ export function usePhotoboothFlow({
   const [borderStyle, setBorderStyle] = useState<PhotoStripConfig['borderStyle']>('neon-glow');
 
   const isCapturingRef = useRef<boolean>(false);
+  // Bumped to cancel an in-flight capture sequence
+  const sessionIdRef = useRef<number>(0);
+  // Mirrors `photos` so a resumed shoot knows what was already taken
+  const photosRef = useRef<string[]>([]);
+  photosRef.current = photos;
 
   /**
    * Internal sequence runner for multi-shot capture
@@ -137,12 +135,15 @@ export function usePhotoboothFlow({
   const startCaptureSequence = useCallback(async () => {
     if (isCapturingRef.current) return;
     isCapturingRef.current = true;
-    setPhotos([]);
+    const sessionId = ++sessionIdRef.current;
+    const cancelled = () => sessionIdRef.current !== sessionId;
     setStep('COUNTDOWN');
 
-    const capturedPhotos: string[] = [];
+    // Resume after the photos saved from a stopped shoot (if any)
+    const capturedPhotos: string[] = photosRef.current.slice(0, totalShots);
+    setPhotos([...capturedPhotos]);
 
-    for (let shot = 1; shot <= totalShots; shot++) {
+    for (let shot = capturedPhotos.length + 1; shot <= totalShots; shot++) {
       setCurrentShotNumber(shot);
 
       // 3-second countdown
@@ -150,6 +151,7 @@ export function usePhotoboothFlow({
         setCountdownValue(c);
         playCountdownBeep(c === 1 ? 880 : 520);
         await new Promise((res) => setTimeout(res, 900));
+        if (cancelled()) return;
       }
 
       // Flash & Capture
@@ -164,11 +166,13 @@ export function usePhotoboothFlow({
 
       await new Promise((res) => setTimeout(res, 350));
       setIsFlashActive(false);
+      if (cancelled()) return;
 
       // Brief pause between shots if not the final shot
       if (shot < totalShots) {
         setStep('PROCESSING');
         await new Promise((res) => setTimeout(res, 800));
+        if (cancelled()) return;
         setStep('COUNTDOWN');
       }
     }
@@ -191,14 +195,6 @@ export function usePhotoboothFlow({
           }
           break;
 
-        case 'THUMBS_UP':
-          // Thumbs up cycles layout
-          setActiveLayout((prev) => {
-            const nextIdx = (LAYOUT_ORDER.indexOf(prev) + 1) % LAYOUT_ORDER.length;
-            return LAYOUT_ORDER[nextIdx];
-          });
-          break;
-
         case 'OPEN_PALM':
           // Open palm cycles live filter
           setActiveFilter((prev) => {
@@ -208,9 +204,15 @@ export function usePhotoboothFlow({
           break;
 
         case 'FIST':
-          // Fist resets current session or retakes photos
-          setPhotos([]);
+          // Fist pauses a running shoot and keeps the photos taken so far;
+          // on the ready screen it discards that saved progress.
+          if (step === 'READY') {
+            setPhotos([]);
+          }
+          sessionIdRef.current++;
+          isCapturingRef.current = false;
           setCountdownValue(0);
+          setIsFlashActive(false);
           setStep('READY');
           break;
       }
@@ -219,6 +221,7 @@ export function usePhotoboothFlow({
   );
 
   const resetSession = useCallback(() => {
+    sessionIdRef.current++;
     isCapturingRef.current = false;
     setCountdownValue(0);
     setPhotos([]);

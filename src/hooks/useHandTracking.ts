@@ -12,6 +12,8 @@ export interface UseHandTrackingOptions {
   onGestureTrigger?: (gesture: GestureType) => void;
   holdThresholdMs?: number;
   cooldownDurationMs?: number;
+  /** When set, only these gestures are recognised; everything else is ignored and not drawn */
+  allowedGestures?: GestureType[];
 }
 
 export function useHandTracking({
@@ -21,6 +23,7 @@ export function useHandTracking({
   onGestureTrigger,
   holdThresholdMs = 500,
   cooldownDurationMs = 2000,
+  allowedGestures,
 }: UseHandTrackingOptions) {
   const overlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const stateMachineRef = useRef<GestureStateMachine>(
@@ -41,6 +44,24 @@ export function useHandTracking({
 
   const onTriggerRef = useRef(onGestureTrigger);
   onTriggerRef.current = onGestureTrigger;
+  const allowedRef = useRef(allowedGestures);
+  allowedRef.current = allowedGestures;
+  const allowedKey = allowedGestures ? allowedGestures.join(',') : '*';
+
+  const clearOverlay = useCallback(() => {
+    const canvas = overlayCanvasRef.current;
+    canvas?.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
+  }, []);
+
+  // Switching gesture mode (e.g. capture starts): drop any leftover hold/cooldown and drawings
+  useEffect(() => {
+    stateMachineRef.current.reset();
+    setActiveGesture('NONE');
+    setGestureState('IDLE');
+    setHoldProgress(0);
+    setCooldownRemaining(0);
+    clearOverlay();
+  }, [allowedKey, clearOverlay]);
 
   // Initialize MediaPipe Vision Task
   useEffect(() => {
@@ -120,6 +141,11 @@ export function useHandTracking({
 
           // 1. Biometric Classification
           const classification = classifyHandGesture(landmarks);
+          const allowed = allowedRef.current;
+          if (allowed && !allowed.includes(classification.gesture)) {
+            classification.gesture = 'NONE';
+            classification.confidence = 0;
+          }
           setConfidence(classification.confidence);
 
           // 2. Feed into Gesture State Machine
@@ -135,7 +161,9 @@ export function useHandTracking({
           setCooldownRemaining(smResult.cooldownRemaining);
 
           // 3. Render Neon Skeleton
-          if (canvas) {
+          if (canvas && allowed && smResult.activeGesture === 'NONE') {
+            canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
+          } else if (canvas) {
             renderNeonSkeleton({
               canvas,
               landmarks,
@@ -172,8 +200,9 @@ export function useHandTracking({
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      clearOverlay();
     };
-  }, [enabled, isModelLoading, modelError, videoRef, mirrored]);
+  }, [enabled, isModelLoading, modelError, videoRef, mirrored, clearOverlay]);
 
   const resetStateMachine = useCallback(() => {
     stateMachineRef.current.reset();

@@ -141,15 +141,6 @@ export function classifyHandGesture(landmarks: HandLandmarks): ClassificationRes
     return { gesture: 'VICTORY', confidence, fingerStates };
   }
 
-  // 2. THUMBS UP: Thumb pointing up (lower Y in screen space), 4 fingers curled
-  // In screen coordinates, lower y is physically higher.
-  const isThumbPointingUp = (thumbTip.y < thumbIp.y) && (thumbIp.y < thumbMcp.y) && (thumbTip.y < indexMcp.y - safeScale * 0.3);
-  if (isThumbPointingUp && indexCurled && middleCurled && ringCurled && pinkyCurled) {
-    const yDelta = (thumbMcp.y - thumbTip.y) / safeScale;
-    const confidence = Math.min(1.0, 0.7 + Math.min(yDelta * 0.3, 0.3));
-    return { gesture: 'THUMBS_UP', confidence, fingerStates };
-  }
-
   // 3. OPEN PALM: All 5 fingers extended and spread outwards
   if (indexExtended && middleExtended && ringExtended && pinkyExtended && thumbExtended) {
     // Check spread between adjacent tips

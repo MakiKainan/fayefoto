@@ -16,6 +16,10 @@ import { PermissionFallback } from './components/UI/PermissionFallback';
 import { PersonaBackdrop, PERSONA_ASSETS } from './components/UI/PersonaArt';
 import { PageTransition, TRANSITION_COVER_MS } from './components/UI/PageTransition';
 import { PersonaText } from './persona/personaTextEngine';
+import { FilterBar } from './components/UI/FilterBar';
+import { GestureType } from './types/gesture';
+
+const SHOOT_GESTURES: GestureType[] = ['FIST'];
 
 export default function App() {
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -75,6 +79,8 @@ export default function App() {
     playGestureChime,
   });
 
+  const isShooting = step === 'COUNTDOWN' || step === 'PROCESSING';
+
   // Hand Tracking & Gesture State Machine Hook
   const {
     overlayCanvasRef,
@@ -86,7 +92,9 @@ export default function App() {
     handDetected,
   } = useHandTracking({
     videoRef,
-    enabled: gestureEnabled && step === 'READY',
+    enabled: gestureEnabled && (step === 'READY' || isShooting),
+    // During the shoot, only a fist (stop) is listened for
+    allowedGestures: isShooting ? SHOOT_GESTURES : undefined,
     mirrored: isMirrored,
     onGestureTrigger: handleGestureAction,
     holdThresholdMs: 500,
@@ -178,6 +186,7 @@ export default function App() {
 
             {/* Right: camera */}
             <div className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-2">
+              <FilterBar activeFilter={activeFilter} onSelectFilter={setActiveFilter} />
               <div className="relative w-full">
                 <CameraView
                   videoRef={videoRef}

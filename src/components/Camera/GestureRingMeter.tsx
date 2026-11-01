@@ -14,7 +14,7 @@ const GESTURE_ACTIONS: Record<GestureType, string> = {
   VICTORY: 'Take Photos',
   THUMBS_UP: 'Next Layout',
   OPEN_PALM: 'Change Filter',
-  FIST: 'Retake',
+  FIST: 'Stop',
   NONE: '',
 };
 
